@@ -1,0 +1,340 @@
+Program.Sub.ScreenSU.Start
+Gui.FrmSet..Create
+Gui.FrmSet..Caption("Customer/Part Qty Sets")
+Gui.FrmSet..Size(6765,6405)
+Gui.FrmSet..MinX(0)
+Gui.FrmSet..MinY(0)
+Gui.FrmSet..Position(0,0)
+Gui.FrmSet..BackColor(-2147483633)
+Gui.FrmSet..MousePointer(0)
+Gui.FrmSet..Event(UnLoad,FrmSet_UnLoad)
+Gui.FrmSet..MaxButton(False)
+Gui.FrmSet..Sizeable(False)
+Gui.FrmSet.lblCust.Create(Label,"Customer",True,1215,255,0,75,195,True,0,"Arial",8,-2147483633,0)
+Gui.FrmSet.txtCust.Create(TextBox,"",True,1215,300,0,75,405,True,0,"Arial",8,-2147483643,1)
+Gui.FrmSet.txtCust.TabStop(True)
+Gui.FrmSet.txtCust.TabIndex(1)
+Gui.FrmSet.txtCust.Event(LostFocus,SetAllCaps)
+Gui.FrmSet.lblPart.Create(Label,"Part",True,1890,255,0,1800,195,True,0,"Arial",8,-2147483633,0)
+Gui.FrmSet.txtPart.Create(TextBox,"",True,1890,300,0,1800,405,True,0,"Arial",8,-2147483643,1)
+Gui.FrmSet.txtPart.TabStop(True)
+Gui.FrmSet.txtPart.TabIndex(3)
+Gui.FrmSet.txtPart.Event(LostFocus,SetAllCaps)
+Gui.FrmSet.lblQty.Create(Label,"Qty In Set",True,825,255,0,4230,195,True,0,"Arial",8,-2147483633,0)
+Gui.FrmSet.txtQty.Create(TextBox,"",True,825,300,0,4230,405,True,0,"Arial",8,-2147483643,1)
+Gui.FrmSet.txtQty.TabStop(True)
+Gui.FrmSet.txtQty.TabIndex(5)
+Gui.FrmSet.cmdCust.Create(Button)
+Gui.FrmSet.cmdCust.Size(345,345)
+Gui.FrmSet.cmdCust.Position(1335,390)
+Gui.FrmSet.cmdCust.Caption("^")
+Gui.FrmSet.cmdCust.Event(Click,cmdCust_Click)
+Gui.FrmSet.cmdCust.TabStop(True)
+Gui.FrmSet.cmdCust.TabIndex(2)
+Gui.FrmSet.cmdPart.Create(Button)
+Gui.FrmSet.cmdPart.Size(345,345)
+Gui.FrmSet.cmdPart.Position(3750,390)
+Gui.FrmSet.cmdPart.Caption("^")
+Gui.FrmSet.cmdPart.Event(Click,cmdPart_Click)
+Gui.FrmSet.cmdPart.TabStop(True)
+Gui.FrmSet.cmdPart.TabIndex(4)
+Gui.FrmSet.GsGCSet.Create(GsGridControl)
+Gui.FrmSet.GsGCSet.Size(6495,5250)
+Gui.FrmSet.GsGCSet.Position(75,795)
+Gui.FrmSet.GsGCSet.Event(RowCellClick,GsGCSet_RowCellClick)
+Gui.FrmSet.GsGCSet.TabStop(True)
+Gui.FrmSet.GsGCSet.TabIndex(8)
+Gui.FrmSet.cmdAdd.Create(Button)
+Gui.FrmSet.cmdAdd.Size(660,345)
+Gui.FrmSet.cmdAdd.Position(5220,390)
+Gui.FrmSet.cmdAdd.Caption("Add")
+Gui.FrmSet.cmdAdd.Event(Click,cmdAdd_Click)
+Gui.FrmSet.cmdAdd.TabStop(True)
+Gui.FrmSet.cmdAdd.TabIndex(6)
+Gui.FrmSet.cmdDel.Create(Button)
+Gui.FrmSet.cmdDel.Size(660,345)
+Gui.FrmSet.cmdDel.Position(5925,390)
+Gui.FrmSet.cmdDel.Caption("Delete")
+Gui.FrmSet.cmdDel.Event(Click,cmdDel_Click)
+Gui.FrmSet.cmdDel.TabStop(True)
+Gui.FrmSet.cmdDel.TabIndex(7)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+	V.Global.iRow.Declare
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sIcon.Declare
+
+	F.Intrinsic.String.Build("{0}\GSS2.ico",V.Caller.GasDir,V.Local.sIcon)
+	Gui.FrmSet..Icon(V.Local.sIcon)
+
+	F.ODBC.Connection!con.OpenCompanyConnection(300)
+	F.Intrinsic.Control.CallSub(checktable)
+	F.Intrinsic.Control.CallSub(loaddtgvset)
+	V.Global.iRow.Set(-1)
+	Gui.FrmSet.txtQty.Text("0.0000")
+	Gui.FrmSet..Show
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.FrmSet_UnLoad.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	F.ODBC.Connection!con.Close
+	F.Intrinsic.Control.End 
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.FrmSet_UnLoad.End
+
+Program.Sub.CheckTable.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.bExists.Declare
+
+	F.ODBC.Connection!con.TableExists("GAB_4537_CP_SET",V.Local.bExists)
+	F.Intrinsic.Control.If(V.Local.bExists,=,False)
+		F.ODBC.Connection!con.Execute("CREATE TABLE GAB_4537_CP_SET(CUSTOMER CHAR(6),PART CHAR(20),QTY_IN_SET NUMERIC(13,4));")
+		F.ODBC.Connection!con.Execute("CREATE UNIQUE NOT MODIFIABLE INDEX GAB_4537_K00 USING 0 ON GAB_4537_CP_SET(CUSTOMER,PART);")
+	F.Intrinsic.Control.EndIf
+
+	'Add Auto Complete Dropdowns
+	F.Data.Dictionary.CreateFromSQL("dCust","con","Select Customer,Customer From V_Customer_Master;")
+	Gui.FrmSet.txtCust.AddAutoCompleteItem("dCust","Dictionary")
+	F.Data.Dictionary.CreateFromSQL("dPart","con","Select Part,Part From V_Inventory_Mstr;")
+	Gui.FrmSet.txtPart.AddAutoCompleteItem("dPart","Dictionary")
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.CheckTable.End
+
+Program.Sub.LoadDtGvSet.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	F.Intrinsic.Control.If(V.DataTable.dtSet.Exists)
+		F.Data.DataTable.Close("dtset")
+	F.Intrinsic.Control.EndIf
+
+	F.Data.DataTable.CreateFromSQL("dtSet","con","Select * From GAB_4537_CP_SET;",True)
+
+	Gui.FrmSet.GsGCSet.AddGridviewFromDatatable("gvSet","dtSet")
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","MultiSelect",True)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","AllowSort",True)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","AllowFilter",True)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","ReadOnly",True)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","Editable",False)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","OptionsDetailShowDetailTabs",False)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","OptionsViewShowGroupPanel",False)
+	Gui.FrmSet.GsGCSet.SetGridViewProperty("gvSet","EnableAppearanceOddRow",True)
+
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","CUSTOMER","Caption","Customer")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","PART","Caption","Part")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","QTY_IN_SET","Caption","Qty In Set")
+
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","CUSTOMER","MinWidth","55")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","PART","MinWidth","165")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","QTY_IN_SET","MinWidth","100")
+
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","CUSTOMER","HeaderHAlignment","Center")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","PART","HeaderHAlignment","Center")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","QTY_IN_SET","HeaderHAlignment","Center")
+
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","CUSTOMER","CellHAlignment","Center")
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","QTY_IN_SET","CellHAlignment","Center")
+
+	Gui.FrmSet.GsGCSet.SetColumnProperty("gvSet","QTY_IN_SET","DisplayCustomNumeric","#,###,##0.0000")
+
+	Gui.FrmSet.GsGCSet.MainView("gvSet")
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.LoadDtGvSet.End
+
+Program.Sub.GsGCSet_RowCellClick.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sRet.Declare
+
+	F.Intrinsic.Control.If(V.Args.Clicks,=,2)
+		V.Global.iRow.Set(V.Args.RowIndex)
+		Gui.FrmSet.GsGCSet.GetCellValueByColumnName("gvSet","Customer",V.Global.iRow,V.Local.sRet)
+		Gui.FrmSet.txtCust.Text(V.Local.sRet)
+		Gui.FrmSet.GsGCSet.GetCellValueByColumnName("gvSet","Part",V.Global.iRow,V.Local.sRet)
+		Gui.FrmSet.txtPart.Text(V.Local.sRet)
+		Gui.FrmSet.GsGCSet.GetCellValueByColumnName("gvSet","Qty_In_Set",V.Global.iRow,V.Local.sRet)
+		Gui.FrmSet.txtQty.Text(V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.GsGCSet_RowCellClick.End
+
+Program.Sub.cmdCust_Click.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sRet.Declare
+
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	F.Intrinsic.UI.Browser(205,"",V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		Gui.FrmSet.txtCust.Text(V.Local.sRet(0).Trim)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.cmdCust_Click.End
+
+Program.Sub.cmdPart_Click.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sRet.Declare
+
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	F.Intrinsic.UI.Browser(105,"",V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		Gui.FrmSet.txtPart.Text(V.Local.sRet(0).Trim)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.cmdPart_Click.End
+
+Program.Sub.cmdAdd_Click.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sExp.Declare
+	V.Local.sRet.Declare
+	V.Local.sCust.Declare
+	V.Local.sPart.Declare
+
+	V.Local.sCust.Set(V.Screen.FrmSet!txtCust.Text)
+	V.Local.sPart.Set(V.Screen.FrmSet!txtPart.Text)
+
+	F.Intrinsic.Control.If(V.Local.sCust.Trim,=,"")
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.Local.sPart.Trim,=,"")
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.Global.iRow,=,-1)
+		F.Intrinsic.String.Build("Customer = '{0}' And Part = '{1}'",V.Local.sCust.Trim,V.Local.sPart.Trim,V.Local.sExp)
+		F.Data.DataTable.Select("dtSet",V.Local.sExp,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,=,"***NORETURN***")
+			F.Data.DataTable.AddRow("dtSet","Customer",V.Local.sCust.Trim,"Part",V.Local.sPart.Trim,"Qty_In_Set",V.Screen.FrmSet!txtQty.Text)
+			F.Data.DataTable.SaveToDB("dtSet","con","GAB_4537_CP_SET","CUSTOMER*!*PART",1)
+			F.Intrinsic.Control.CallSub(loaddtgvset)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("Customer/Part combination already in table.","Customer/Part Qty Sets")
+			F.Intrinsic.Control.CallSub(clear)
+			F.Intrinsic.Control.ExitSub
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		F.Data.DataTable.SetValue("dtSet",V.Global.iRow,"Customer",V.Local.sCust.Trim,"Part",V.Local.sPart.Trim,"Qty_In_Set",V.Screen.FrmSet!txtQty.Text)
+		F.Data.DataTable.SaveToDB("dtSet","con","GAB_4537_CP_SET","CUSTOMER*!*PART",2)
+		V.Global.iRow.Set(-1)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.CallSub(clear)
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.cmdAdd_Click.End
+
+Program.Sub.cmdDel_Click.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	F.Intrinsic.Control.If(V.Global.iRow,<>,-1)
+		F.Data.DataTable.DeleteRow("dtSet",V.Global.iRow)
+		F.Data.DataTable.SaveToDB("dtSet","con","GAB_4537_CP_SET","CUSTOMER*!*PART",4)
+		F.Intrinsic.Control.CallSub(loaddtgvset)
+		V.Global.iRow.Set(-1)
+		F.Intrinsic.Control.CallSub(clear)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.cmdDel_Click.End
+
+Program.Sub.Clear.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	Gui.FrmSet.txtCust.Text("")
+	Gui.FrmSet.txtPart.Text("")
+	Gui.FrmSet.txtQty.Text("0.0000")
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.Clear.End
+
+Program.Sub.SetAllCaps.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sCust.Declare
+	V.Local.sPart.Declare
+
+	V.Local.sCust.Set(V.Screen.FrmSet!txtCust.Text)
+	V.Local.sPart.Set(V.Screen.FrmSet!txtPart.Text)
+
+	Gui.FrmSet.txtCust.Text(V.Local.sCust.UCase)
+	Gui.FrmSet.txtPart.Text(V.Local.sPart.UCase)
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Cust_Part_Qty.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.SetAllCaps.End
+
+Program.Sub.Comments.Start
+${$0$}$GAB_4537_Cust_Part_Qty$}$AGV$}$04/12/2017 8:11:16 PM$}$False
+Program.Sub.Comments.End
