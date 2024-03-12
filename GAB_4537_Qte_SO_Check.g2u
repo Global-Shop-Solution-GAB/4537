@@ -1,0 +1,50 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sCustomer.Declare
+	V.Local.sPart.Declare
+	V.Local.sQteOrd.Declare
+	V.Local.sSql.Declare
+	V.Local.fQty.Declare
+	V.Local.sMsg.Declare
+
+	F.ODBC.Connection!con.OpenCompanyConnection(300)
+
+	F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+		F.Intrinsic.Control.Case(10531)
+			V.Local.sCustomer.Set(V.Passed.000112)
+			F.Intrinsic.String.GSSPartString(V.Passed.000052,V.Passed.000053,V.Local.sPart)
+			F.Intrinsic.String.Build("Select Qty_In_Set From GAB_4537_CP_SET Where Customer = '{0}' And Part = '{1}';",V.Local.sCustomer,V.Local.sPart,V.Local.sSql)
+			F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.fQty)
+			F.Intrinsic.Control.If(V.Local.fQty,<>,0)
+				F.Intrinsic.String.Build("This part is sold as a Set of {0}.  Please make sure the order quantity is entered as each and not how it's sold in the set.",V.Local.fQty,V.Local.sMsg)
+				F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Qty Set Check")
+			F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Control.Case(12230)
+			F.Intrinsic.String.LPad(V.Passed.000060,"0",7,V.Local.sQteOrd)
+			F.Intrinsic.String.Build("Select Customer From V_Order_Header Where Order_No = '{0}';",V.Local.sQteOrd,V.Local.sSql)
+			F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.sCustomer)
+			F.Intrinsic.String.GSSPartString(V.Passed.000052,V.Passed.000053,V.Local.sPart)
+			F.Intrinsic.String.Build("Select Qty_In_Set From GAB_4537_CP_SET Where Customer = '{0}' And Part = '{1}';",V.Local.sCustomer,V.Local.sPart,V.Local.sSql)
+			F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.fQty)
+			F.Intrinsic.Control.If(V.Local.fQty,<>,0)
+				F.Intrinsic.String.Build("This part is sold as a Set of {0}.  Please make sure the order quantity is entered as each and not how it's sold in the set.",V.Local.fQty,V.Local.sMsg)
+				F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Qty Set Check")
+			F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndSelect
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: GAB_4537_Qte_SO_Check.g2u{0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}.",V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$GAB_4537_Qte_SO_Check$}$AGV$}$04/12/2017 8:11:16 PM$}$False
+Program.Sub.Comments.End
